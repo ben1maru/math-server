@@ -24,5 +24,9 @@ app.get("/", (re, res) => {
   return res.json("from backend");
 });
 
+app.listen(8081, () => {
+  console.log("listening");
+});
+
 
 module.exports=app;

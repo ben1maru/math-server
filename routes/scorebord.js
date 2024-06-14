@@ -2,6 +2,55 @@ const express = require("express");
 const router = express.Router();
 const db = require("../db");
 
+router.get('/scoreboardProfile', (req, res) => {
+  // Extract userId from query parameters
+  const userId = req.query.userId;
+
+  if (!userId) {
+      return res.status(400).json({ message: 'Bad Request: userId is required' });
+  }
+
+  const queryString = `
+      SELECT scoreboard.*, users.username, level.name AS level_name, category.name AS category_name
+      FROM scoreboard
+      INNER JOIN users ON scoreboard.id_user = users.id
+      INNER JOIN level ON scoreboard.id_level = level.id
+      INNER JOIN category ON scoreboard.id_category = category.id
+      WHERE scoreboard.id_user = ?
+  `;
+
+  db.query(queryString, [userId], (err, rows, fields) => {
+      if (err) {
+          console.log('Failed to query for scoreboard: ' + err);
+          res.sendStatus(500);
+          return;
+      }
+
+      // Формування відповіді з отриманими даними
+      const scoreboardData = rows.map(row => {
+          return {
+              id: row.id,
+              userId: row.id_user,
+              score: row.score,
+              levelId: row.id_level,
+              categoryId: row.id_category,
+              username: row.username,
+              level: row.level_name,
+              category: row.category_name
+          };
+      });
+
+      res.json(scoreboardData);
+      console.log(scoreboardData);
+  });
+});
+
+// Catch block should be outside the route handler
+process.on('uncaughtException', (error) => {
+  console.error('Error occurred:', error);
+});
+
+
 router.get('/scoreboard', (req, res) => {
     // Запит до бази даних для отримання всіх даних з таблиці успішності
     const queryString = `
