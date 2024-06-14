@@ -21,9 +21,4 @@ app.use('/api/scoreboard', scoreboardRoutes);
 app.get("/", (re, res) => {
   return res.json("from backend");
 });
-app.listen(3000, '::', () => {
-  console.log(`Server listening on [::] 3000`);
-});
 
-
-module.exports=app;

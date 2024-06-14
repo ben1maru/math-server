@@ -85,15 +85,15 @@ router.post("/login", async (req, res) => {
 });
 
 router.post("/register", async (req, res) => {
-  const {  email, password } = req.body;
+  const { username, email, password } = req.body;
 
   try {
     const hashedPassword = await bcrypt.hash(password, 12);
 
     // Записуємо користувача в базу даних з хешованим паролем
     const sql =
-      "INSERT INTO `users` (`email`, `password`) VALUES (?, ?)";
-    const values = [ email, hashedPassword, 0]; // Додано хешований пароль
+      "INSERT INTO `users` (`username`,`email`, `password`,status) VALUES (?, ?,?,0)";
+    const values = [ username, email, hashedPassword]; // Додано хешований пароль
     db.query(sql, values, (error, results, fields) => {
       if (error) {
         console.error("Error occurred during registration:", error);
