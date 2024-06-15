@@ -59,6 +59,7 @@ router.post("/questionsUpdate/:id", (req, res) => {
                    id_themes = ?, 
                    description = ? 
                WHERE id = ?`;
+               console.log([photo, question, JSON.stringify(answerData), correct_answer, id_level, id_themes, description, id])
   db.query(sql, [photo, question, JSON.stringify(answerData), correct_answer, id_level, id_themes, description, id], (error, results) => {
     if (error) {
       console.error(error);
@@ -95,7 +96,7 @@ router.get("/questionsEdit/:id", (req, res) => {
   const { id } = req.params;
 
   const sql =
-    "SELECT `id`, `photo`, `question`, `answer`, `correct_answer`, `id_level`, `id_themes`, `description` FROM `question` WHERE `id` = ? ";
+    "SELECT `photo`, `question`, `answer`, `correct_answer`, `id_level`, `id_themes`, `description` FROM `question` WHERE `id` = ? ";
   
   db.query(sql, [id], (error, results) => {
     if (error) {
