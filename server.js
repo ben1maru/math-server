@@ -22,3 +22,4 @@ app.get("/", (re, res) => {
   return res.json("from backend");
 });
 
+module.export = app;

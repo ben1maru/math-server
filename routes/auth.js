@@ -5,42 +5,41 @@ const router = express.Router();
 const db = require("../db");
 const SECRET = process.env.JWT_SECRET;
 
-router.get('/user', async (req, res) => {
+router.get("/user", async (req, res) => {
   const authHeader = req.headers.authorization;
-  
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ message: 'Unauthorized: Missing token' });
+
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ message: "Unauthorized: Missing token" });
   }
 
-  const token = authHeader.split(' ')[1];
+  const token = authHeader.split(" ")[1];
 
   try {
-      // Розкодування токену
-      const decoded = jwt.verify(token, SECRET);
-      const userId = decoded.userId;
+    // Розкодування токену
+    const decoded = jwt.verify(token, SECRET);
+    const userId = decoded.userId;
 
-      // Отримання користувача з бази даних за його ідентифікатором
-      const sql = 'SELECT * FROM `users` WHERE `id` = ?';
-      db.query(sql, [userId], (error, results) => {
-          if (error) {
-              console.error('Error occurred during user retrieval:', error);
-              return res.status(500).json({ error: 'Internal server error' });
-          }
+    // Отримання користувача з бази даних за його ідентифікатором
+    const sql = "SELECT * FROM `users` WHERE `id` = ?";
+    db.query(sql, [userId], (error, results) => {
+      if (error) {
+        console.error("Error occurred during user retrieval:", error);
+        return res.status(500).json({ error: "Internal server error" });
+      }
 
-          if (results.length === 0) {
-              return res.status(404).json({ message: 'User not found' });
-          }
+      if (results.length === 0) {
+        return res.status(404).json({ message: "User not found" });
+      }
 
-          const user = results[0];
-          // Повертаємо дані користувача
-          res.json(user);
-      });
+      const user = results[0];
+      // Повертаємо дані користувача
+      res.json(user);
+    });
   } catch (error) {
-      console.error('Error occurred during token verification:', error);
-      res.status(401).json({ message: 'Unauthorized: Invalid token' });
+    console.error("Error occurred during token verification:", error);
+    res.status(401).json({ message: "Unauthorized: Invalid token" });
   }
 });
-
 
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
@@ -93,7 +92,7 @@ router.post("/register", async (req, res) => {
     // Записуємо користувача в базу даних з хешованим паролем
     const sql =
       "INSERT INTO `users` (`username`,`email`, `password`,status) VALUES (?, ?,?,0)";
-    const values = [ username, email, hashedPassword]; // Додано хешований пароль
+    const values = [username, email, hashedPassword]; // Додано хешований пароль
     db.query(sql, values, (error, results, fields) => {
       if (error) {
         console.error("Error occurred during registration:", error);
@@ -109,41 +108,41 @@ router.post("/register", async (req, res) => {
   }
 });
 
-router.post('/loginAdmin', async (req, res) => {
+router.post("/loginAdmin", async (req, res) => {
   const { email, password } = req.body;
 
   try {
-      // Отримуємо користувача з бази даних за email
-      const sql = "SELECT * FROM `users` WHERE `email` = ?";
-      db.query(sql, [email], async (error, results) => {
-          if (error) {
-              console.error("Error occurred during login:", error);
-              res.status(500).json({ error: "Internal server error" });
-              return;
-          }
+    // Отримуємо користувача з бази даних за email
+    const sql = "SELECT * FROM `users` WHERE `email` = ?";
+    db.query(sql, [email], async (error, results) => {
+      if (error) {
+        console.error("Error occurred during login:", error);
+        res.status(500).json({ error: "Internal server error" });
+        return;
+      }
 
-          // Перевіряємо, чи знайдено користувача
-          if (results.length === 0) {
-              res.status(401).json({ message: "Invalid email or password" });
-              return;
-          }
+      // Перевіряємо, чи знайдено користувача
+      if (results.length === 0) {
+        res.status(401).json({ message: "Invalid email or password" });
+        return;
+      }
 
-          const user = results[0];
+      const user = results[0];
 
-          // Порівнюємо введений пароль з хешованим паролем з бази даних
-          const passwordMatch = await bcrypt.compare(password, user.password);
+      // Порівнюємо введений пароль з хешованим паролем з бази даних
+      const passwordMatch = await bcrypt.compare(password, user.password);
 
-          if (!passwordMatch) {
-              res.status(401).json({ message: "Invalid email or password" });
-              return;
-          }
+      if (!passwordMatch) {
+        res.status(401).json({ message: "Invalid email or password" });
+        return;
+      }
 
-          // Повертаємо статус адміністратора
-          res.json({ isAdmin: user.status });
-      });
+      // Повертаємо статус адміністратора
+      res.json({ isAdmin: user.status });
+    });
   } catch (error) {
-      console.error("Error occurred during login:", error);
-      res.status(500).json({ error: "Internal server error" });
+    console.error("Error occurred during login:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
