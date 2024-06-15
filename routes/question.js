@@ -199,18 +199,19 @@ router.get("/questions/:id_level/:id_themes", (req, res) => {
   db.query(sql, [id_level, id_themes], (error, results) => {
     if (error) {
       console.error("Error fetching questions:", error);
-      res.status(500).json({ error: "Internal server error" });
-      return;
+      return res.status(500).json({ error: "Internal server error" });
     }
 
     // Process the results to handle answers as JSON
     const questions = results.map((q) => {
       let answers = [];
-      try {
-        answers = JSON.parse(q.answer); // Attempt to parse answer as JSON
-      } catch (err) {
-        console.error("Error parsing answer as JSON:", err);
-        // Handle the case where parsing fails, perhaps log an error or provide a default value
+      if (q.answer && typeof q.answer === "string" && q.answer.trim() !== "") {
+        try {
+          answers = JSON.parse(q.answer); // Attempt to parse answer as JSON
+        } catch (err) {
+          console.error("Error parsing answer as JSON:", err);
+          // Handle the case where parsing fails, perhaps log an error or provide a default value
+        }
       }
 
       return {
