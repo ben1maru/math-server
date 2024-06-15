@@ -45,11 +45,11 @@ router.delete("/questionsDelete/:id", (req, res) => {
 
 router.post("/questionsUpdate/:id", (req, res) => {
   const { id } = req.params;
-  const { photo, question, answers, correct_answer, id_level, id_themes, description } = req.body;
+  const { photo, question, answer, correct_answer, id_level, id_theme, description } = req.body;
 
-  // Перевірка, чи дані в полі "answers" вже є у форматі JSON
-  const answerData = typeof answers === 'string' ? JSON.parse(answers) : answers;
-
+  // Ensure 'answer' is parsed as an array of strings
+  const answers = Array.isArray(answer) ? answer : JSON.parse(answer);
+  console.log(answer)
   const sql = `UPDATE question 
                SET photo = ?, 
                    question = ?, 
@@ -59,16 +59,17 @@ router.post("/questionsUpdate/:id", (req, res) => {
                    id_themes = ?, 
                    description = ? 
                WHERE id = ?`;
-               console.log([photo, question, JSON.stringify(answerData), correct_answer, id_level, id_themes, description, id])
-  db.query(sql, [photo, question, JSON.stringify(answerData), correct_answer, id_level, id_themes, description, id], (error, results) => {
+
+  db.query(sql, [photo, question, JSON.stringify(answers), correct_answer, id_level, id_theme, description, id], (error, results) => {
     if (error) {
-      console.error(error);
+      console.error("Error updating question:", error);
       res.status(500).json({ error: "Internal server error" });
       return;
     }
     res.json({ message: "Question updated successfully" });
   });
 });
+
 
 
 
