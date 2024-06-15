@@ -22,4 +22,9 @@ app.get("/", (re, res) => {
   return res.json("from backend");
 });
 
+app.listen(3200, '::', () => {
+  console.log(`Server listening on [::] 3200`);
+});
+
+
 module.export = app;
