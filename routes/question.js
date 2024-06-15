@@ -42,14 +42,21 @@ router.delete("/questionsDelete/:id", (req, res) => {
   });
 });
 
-
 router.post("/questionsUpdate/:id", (req, res) => {
   const { id } = req.params;
-  const { photo, question, answer, correct_answer, id_level, id_theme, description } = req.body;
+  const {
+    photo,
+    question,
+    answer,
+    correct_answer,
+    id_level,
+    id_theme,
+    description,
+  } = req.body;
 
   // Ensure 'answer' is parsed as an array of strings
   const answers = Array.isArray(answer) ? answer : JSON.parse(answer);
-  console.log(answer)
+  console.log(answer);
   const sql = `UPDATE question 
                SET photo = ?, 
                    question = ?, 
@@ -60,37 +67,75 @@ router.post("/questionsUpdate/:id", (req, res) => {
                    description = ? 
                WHERE id = ?`;
 
-  db.query(sql, [photo, question, JSON.stringify(answers), correct_answer, id_level, id_theme, description, id], (error, results) => {
-    if (error) {
-      console.error("Error updating question:", error);
-      res.status(500).json({ error: "Internal server error" });
-      return;
+  db.query(
+    sql,
+    [
+      photo,
+      question,
+      JSON.stringify(answers),
+      correct_answer,
+      id_level,
+      id_theme,
+      description,
+      id,
+    ],
+    (error, results) => {
+      if (error) {
+        console.error("Error updating question:", error);
+        res.status(500).json({ error: "Internal server error" });
+        return;
+      }
+      res.json({ message: "Question updated successfully" });
     }
-    res.json({ message: "Question updated successfully" });
-  });
+  );
 });
-
-
-
 
 router.post("/questionsPush", (req, res) => {
   // Отримання даних про питання з тіла запиту
-  const { photo, question, answer, correct_answer, id_level, id_themes, description } = req.body;
+  const {
+    photo,
+    question,
+    answer,
+    correct_answer,
+    id_level,
+    id_themes,
+    description,
+  } = req.body;
 
   // Перевірка, чи отримано всі необхідні дані
-  if (!photo || !question || !answer || !correct_answer || !id_level || !id_themes) {
-    return res.status(400).json({ message: 'Missing required fields' });
+  if (
+    !photo ||
+    !question ||
+    !answer ||
+    !correct_answer ||
+    !id_level ||
+    !id_themes
+  ) {
+    return res.status(400).json({ message: "Missing required fields" });
   }
 
   // Вставка нового питання у базу даних
-  const sql = "INSERT INTO question (photo, question, answer, correct_answer, id_level, id_themes, description) VALUES (?, ?, ?, ?, ?, ?, ?)";
-  db.query(sql, [photo, question, JSON.stringify(answer), correct_answer, id_level, id_themes, description], (error, results) => {
-    if (error) {
-      console.error("Error inserting question:", error);
-      return res.status(500).json({ error: "Internal server error" });
+  const sql =
+    "INSERT INTO question (photo, question, answer, correct_answer, id_level, id_themes, description) VALUES (?, ?, ?, ?, ?, ?, ?)";
+  db.query(
+    sql,
+    [
+      photo,
+      question,
+      JSON.stringify(answer),
+      correct_answer,
+      id_level,
+      id_themes,
+      description,
+    ],
+    (error, results) => {
+      if (error) {
+        console.error("Error inserting question:", error);
+        return res.status(500).json({ error: "Internal server error" });
+      }
+      res.status(201).json({ message: "Question successfully inserted" });
     }
-    res.status(201).json({ message: "Question successfully inserted" });
-  });
+  );
 });
 
 router.get("/questionsEdit/:id", (req, res) => {
@@ -98,7 +143,7 @@ router.get("/questionsEdit/:id", (req, res) => {
 
   const sql =
     "SELECT `photo`, `question`, `answer`, `correct_answer`, `id_level`, `id_themes`, `description` FROM `question` WHERE `id` = ? ";
-  
+
   db.query(sql, [id], (error, results) => {
     if (error) {
       console.error("Error fetching questions:", error);
@@ -111,7 +156,6 @@ router.get("/questionsEdit/:id", (req, res) => {
   });
 });
 
-
 router.get("/questionsAdmin", (req, res) => {
   const sql = `
     SELECT q.id, q.photo, q.question, q.answer, q.correct_answer, l.name AS level_name, c.name AS category_name, q.id_themes, q.description 
@@ -119,14 +163,14 @@ router.get("/questionsAdmin", (req, res) => {
     JOIN level l ON q.id_level = l.id 
     JOIN category c ON q.id_themes = c.id;
   `;
-  
+
   db.query(sql, (error, results) => {
     if (error) {
       console.error("Error fetching questions:", error);
       res.status(500).json({ error: "Internal server error" });
       return;
     }
-    
+
     // Формуємо дані з варіантами відповідей
     const questions = results.map((q) => {
       let answers;
@@ -146,29 +190,37 @@ router.get("/questionsAdmin", (req, res) => {
   });
 });
 
-
-
 router.get("/questions/:id_level/:id_themes", (req, res) => {
-    const { id_level, id_themes } = req.params;
-  
-    const sql =
-      "SELECT `id`, `photo`, `question`, `answer`, `correct_answer`, `id_level`, `id_themes`, `description` FROM `question` WHERE `id_level` = ? AND `id_themes` = ?";
-    
-    db.query(sql, [id_level, id_themes], (error, results) => {
-      if (error) {
-        console.error("Error fetching questions:", error);
-        res.status(500).json({ error: "Internal server error" });
-        return;
+  const { id_level, id_themes } = req.params;
+
+  const sql =
+    "SELECT `id`, `photo`, `question`, `answer`, `correct_answer`, `id_level`, `id_themes`, `description` FROM `question` WHERE `id_level` = ? AND `id_themes` = ?";
+
+  db.query(sql, [id_level, id_themes], (error, results) => {
+    if (error) {
+      console.error("Error fetching questions:", error);
+      res.status(500).json({ error: "Internal server error" });
+      return;
+    }
+
+    // Process the results to handle answers as JSON
+    const questions = results.map((q) => {
+      let answers = [];
+      try {
+        answers = JSON.parse(q.answer); // Attempt to parse answer as JSON
+      } catch (err) {
+        console.error("Error parsing answer as JSON:", err);
+        // Handle the case where parsing fails, perhaps log an error or provide a default value
       }
-      // Формуємо дані з варіантами відповідей
-      const questions = results.map((q) => {
-        return {
-          ...q,
-          answers: JSON.parse(q.answer), // Перетворюємо рядок JSON у масив
-        };
-      });
-      res.json(questions);
+
+      return {
+        ...q,
+        answers: answers,
+      };
     });
+
+    res.json(questions);
   });
-  
-  module.exports = router;
+});
+
+module.exports = router;
