@@ -117,26 +117,33 @@ router.get("/questionsAdmin", (req, res) => {
     JOIN level l ON q.id_level = l.id 
     JOIN category c ON q.id_themes = c.id;
   `;
+  
   db.query(sql, (error, results) => {
     if (error) {
       console.error("Error fetching questions:", error);
       res.status(500).json({ error: "Internal server error" });
-      
       return;
     }
+    
     // Формуємо дані з варіантами відповідей
     const questions = results.map((q) => {
+      let answers;
+      try {
+        answers = JSON.parse(q.answer); // Перетворюємо рядок JSON у масив
+      } catch (parseError) {
+        console.error("Error parsing JSON for question answer:", parseError);
+        answers = []; // або будь-який інший дефолтний варіант
+      }
       return {
         ...q,
-        answers: JSON.parse(q.answer), // Перетворюємо рядок JSON у масив
+        answers,
       };
     });
-    
+
     res.json(questions);
-  
   });
-  
 });
+
 
 
 router.get("/questions/:id_level/:id_themes", (req, res) => {
